@@ -39,15 +39,18 @@ def main():
     features = (features - mean) / (std + 0.000001)
     dd.initialize_detection_model(features=features[:training_window_size])
     idx = training_window_size
-    while idx < len(features):
+    while idx + training_window_size < len(features):
         detected = dd.detect_drifts(features[idx:idx+test_batch_size])
         if not detected:
             idx += test_batch_size
             continue
 
-        if dd.temporary_label[0] <= dd.max_idx and dd.temporary_label[0] != 0:
-            detected += 1
-        print('Drift detected at index %d: %d' % (idx, detected))
+        if dd.max_idx != dd.generator_label:
+            if dd.temporary_label[0] <= dd.max_idx and dd.temporary_label[0] != 0:
+                detected += 1
+            print('Drift detected at index %d: %d' % (idx, detected))
+        else:
+            print('New drift detected at index %d: %d' % (idx, detected))
         # Collect data until window is full and then retrain the model
         data = features[idx:idx+training_window_size]
         dd.retrain_model(data=data, index=idx)
