@@ -14,8 +14,8 @@ import random
 
 class DriftDetector:
     def __init__(self, device="cpu", epochs=125, steps_generator=100, equalize=True, max_count=100,
-                 shuffle_discriminator=True, shuffle_generator=False, batch_size=8, lr=0.001,
-                 rho=0.9, eps=0.000001, weight_decay=0.000000005, training_window_size=50, generator_batch_size=1,
+                 shuffle_discriminator=True, shuffle_generator=False, batch_size=8, lr=0.001,  rho=0.9, eps=0.000001,
+                 weight_decay=0.000000005, training_window_size=50, generator_batch_size=1, threshold=0.50,
                  sequence_length=1, final_layer_incoming_connections=512):
         """
 
@@ -34,6 +34,7 @@ class DriftDetector:
         :param weight_decay: weight decay for adadelta optimizer. Default for the model is set to 0.0005
         :param training_window_size: Number of instances to be accumulated for training on a particular drift
         :param generator_batch_size: batch size for the generator
+        :param threshold: Threshold for below it is considered a drift. Default is 0.5
         :param sequence_length: Number of sequences from the past to be concatenated for prediction
         on the current feature
         :param final_layer_incoming_connections: Number of input connection in the final layer
@@ -53,6 +54,7 @@ class DriftDetector:
         self.training_window_size = training_window_size
         self.sequence_length = sequence_length
         self.temporary_label = [0]
+        self.threshold = threshold
 
         self.lr = lr
         self.rho = rho
@@ -152,7 +154,7 @@ class DriftDetector:
 
         # Losses for the generator and discriminator
         loss_mse_generator = nn.MSELoss()
-        loss_generator = nn.CrossEntropyLoss()
+        loss_generator = nn.BCELoss()
         loss_discriminator = nn.MSELoss()
 
         # Create the optimizers for the models
@@ -163,7 +165,7 @@ class DriftDetector:
 
         # Label vectors
         ones = Variable(torch.ones(self.batch_size)).float().to(self.device)
-        zeros = Variable(torch.zeros(self.generator_batch_size)).float().to(self.device)
+        zeros = Variable(torch.zeros(self.generator_batch_size, 1)).float().to(self.device)
 
         # Define the data loader for training
         real_data = DataLoader(features, batch_size=self.batch_size, shuffle=self.shuffle_discriminator,
@@ -276,7 +278,8 @@ class DriftDetector:
             generated_training_discriminator_output = discriminator(generated_output)
 
             # Compute loss based on ideal target values
-            loss_generated = loss_fn(generated_training_discriminator_output, labels)
+            loss_generated = loss_fn(torch.reshape(generated_training_discriminator_output,
+                                                   shape=(generated_training_discriminator_output.shape[0], 1)), labels)
 
             loss_lstm = loss_mse(generated_output, target)
 
