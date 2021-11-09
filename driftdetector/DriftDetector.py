@@ -126,7 +126,7 @@ class DriftDetector:
         network = network.double()
         network = network.to(self.device)
 
-        dl = DataLoader(training_set, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate())
+        dl = DataLoader(training_set, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate)
         optimizer = Adadelta(network.parameters())
         loss = nn.BCELoss()
 

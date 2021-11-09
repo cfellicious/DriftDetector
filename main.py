@@ -50,8 +50,8 @@ def main():
         print('Drift detected at index %d' % idx)
         # Collect data until window is full and then retrain the model
         data = features[idx:idx+training_window_size]
-        dd.retrain_model(old_features=features[idx-training_window_size, :],
-                         new_features=features[idx+training_window_size, :])
+        dd.retrain_model(old_features=features[idx-training_window_size:idx, :],
+                         new_features=features[idx:idx+training_window_size, :])
         idx += training_window_size
 
     print(idx)
