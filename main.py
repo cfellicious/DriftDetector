@@ -21,7 +21,7 @@ def main():
                        equalize=equalize, sequence_length=sequence_length, lr=lr,
                        steps_generator=steps_generator, generator_batch_size=generator_batch_size)
 
-    path = '../driftdetection/datasets/real-world/spam.csv'
+    path = '../driftdetection/datasets/real-world/outdoorStream.csv'
     array = []
     labels = []
 
@@ -50,7 +50,8 @@ def main():
         print('Drift detected at index %d' % idx)
         # Collect data until window is full and then retrain the model
         data = features[idx:idx+training_window_size]
-        dd.retrain_model(data=data, index=idx)
+        dd.retrain_model(old_features=features[idx-training_window_size, :],
+                         new_features=features[idx+training_window_size, :])
         idx += training_window_size
 
     print(idx)
