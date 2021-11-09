@@ -126,7 +126,7 @@ class DriftDetector:
         network = network.double()
         network = network.to(self.device)
 
-        dl = DataLoader(training_set, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate)
+        dl = DataLoader(training_set, batch_size=self.batch_size, shuffle=True, collate_fn=self.collate_train)
         optimizer = Adadelta(network.parameters())
         loss = nn.BCELoss()
 
@@ -318,7 +318,15 @@ class DriftDetector:
                          for x in batch])
         y = torch.stack([torch.tensor(x[-feature_length:]) for x in batch])
         # Return features and targets
-        return x.to(torch.double), y
+        x = torch.reshape(x, shape=(x.shape[0], x.shape[2]))
+        return x.to(torch.float), y
+
+    def collate_train(self, batch):
+        # Stack each tensor variable
+        x = torch.stack([torch.tensor(x[:-1]) for x in batch])
+        y = torch.stack([torch.tensor([x[-1]]) for x in batch])
+        # Return features and labels
+        return x, y
 
     def concatenate_features(self, data):
 
