@@ -5,17 +5,19 @@ def main():
     import csv
     import numpy as np
 
+    device = 'cpu'
+
     training_window_size = 100
     test_batch_size = 4
     steps_generator = 50
     epochs = 50
     equalize = True
-    sequence_length = 10
+    sequence_length = 1
     batch_size = 8
     generator_batch_size = 2
     lr = 1.0
 
-    dd = DriftDetector(training_window_size=training_window_size, device='cuda', epochs=epochs, batch_size=batch_size,
+    dd = DriftDetector(training_window_size=training_window_size, device=device, epochs=epochs, batch_size=batch_size,
                        equalize=equalize, sequence_length=sequence_length, lr=lr,
                        steps_generator=steps_generator, generator_batch_size=generator_batch_size)
 
