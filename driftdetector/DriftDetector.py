@@ -210,7 +210,7 @@ class DriftDetector:
             output_discriminator = self.discriminator(features)
 
             # The real data is without any concept drift. Evaluate loss against zeros
-            real_data_loss = loss_fn(output_discriminator, labels)
+            real_data_loss = loss_fn(output_discriminator.flatten(), labels[:output_discriminator.shape[0]])
 
             # Get the output from the generator for the generated data compared to ones which is drifted data
             generator_input = None
